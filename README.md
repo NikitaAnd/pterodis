@@ -20,3 +20,38 @@ python3.9
 disnake
 pickle
 py-dacyl
+
+## iOS VLESS клиент + unsigned IPA
+
+Добавлен минимальный iOS клиент в `ios/VlessConnect`, который:
+- принимает `vless://` ключ,
+- парсит основные поля (uuid, host, port, security, sni и т.д.),
+- показывает результат в виде JSON для дальнейшего импорта/диагностики.
+
+### Где взять готовый IPA
+
+Готовый файл появляется после сборки в GitHub Actions:
+1. Открой GitHub → **Actions** → workflow **Build unsigned IPA**.
+2. Нажми **Run workflow** (или просто пушни в любую ветку — workflow запускается автоматически).
+3. Открой завершённый run и в блоке **Artifacts** скачай `VlessConnect-unsigned-ipa`.
+4. Внутри будет `VlessConnect-unsigned.ipa`.
+
+### Сборка unsigned IPA через GitHub Actions
+
+В репозиторий добавлен workflow: `.github/workflows/build-unsigned-ipa.yml`.
+
+Что делает workflow:
+1. Генерирует Xcode-проект через XcodeGen (`project.yml`).
+2. Собирает приложение без подписи (`CODE_SIGNING_ALLOWED=NO`).
+3. Упаковывает `.app` в `Payload/` и формирует `VlessConnect-unsigned.ipa`.
+4. Загружает IPA как artifact `VlessConnect-unsigned-ipa`.
+
+### Подпись через Scarlet
+
+Дальше стандартно:
+1. Скачай `VlessConnect-unsigned.ipa` из artifacts.
+2. Подпиши IPA в Scarlet своим сертификатом.
+3. Установи на устройство.
+
+> Важно: если позже добавишь Network Extension / VPN tunnel capabilities,
+> обычной sideload-подписи может быть недостаточно из-за entitlement-ограничений.
