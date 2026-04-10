@@ -1,0 +1,58 @@
+name: Build unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: ios/VlessConnect
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build app (no codesign)
+        run: |
+          xcodebuild \
+            -project VlessConnect.xcodeproj \
+            -scheme VlessConnect \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/VlessConnect.app Payload/
+          /usr/bin/zip -r VlessConnect-unsigned.ipa Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VlessConnect-unsigned-ipa
+          path: ios/VlessConnect/VlessConnect-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Job summary
+        run: |
+          {
+            echo "## IPA готов";
+            echo "Скачай artifact **VlessConnect-unsigned-ipa** из этого запуска Actions.";
+          } >> "$GITHUB_STEP_SUMMARY"
