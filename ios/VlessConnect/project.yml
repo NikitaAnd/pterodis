@@ -1,6 +1,7 @@
 name: VlessConnect
 options:
   bundleIdPrefix: com.pterodis
+  xcodeVersion: "15.4"
 settings:
   base:
     IPHONEOS_DEPLOYMENT_TARGET: '16.0'
